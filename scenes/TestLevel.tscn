@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bfbpxodaug1w2"]
+[gd_scene load_steps=13 format=3 uid="uid://bfbpxodaug1w2"]
 
 [ext_resource type="Material" uid="uid://41avpc24wsls" path="res://materials/TestLevelTerrainShaderMaterial.tres" id="1_dojpo"]
 [ext_resource type="PackedScene" uid="uid://dvr2kvvvboiwv" path="res://scenes/Player.tscn" id="2_1fpmp"]
@@ -17,6 +17,12 @@ size = Vector3(50, 15, 30)
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_df0lk"]
 points = PackedVector3Array(-25, -7.5, -15, -25, 7.499999, -15, 25, -7.5, -15, -25, -7.5, 14.999998, -25, 7.499999, 14.999998, 25, -7.5, 14.999998)
+
+[sub_resource type="BoxMesh" id="BoxMesh_df0lk"]
+size = Vector3(3, 3, 3)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_i6x8u"]
+points = PackedVector3Array(1.5, 1.5, 1.5, 1.5, 1.5, -1.5, -1.5, 1.5, 1.5, 1.5, -1.5, 1.5, 1.5, -1.5, -1.5, -1.5, 1.5, -1.5, -1.5, -1.5, 1.5, -1.5, -1.5, -1.5)
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_i6x8u"]
 panorama = ExtResource("3_df0lk")
@@ -61,6 +67,15 @@ skeleton = NodePath("../..")
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.13251227, 0.73582315, -42.905724)
 visible = false
 shape = SubResource("ConvexPolygonShape3D_df0lk")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 18.503769, 0)
+mesh = SubResource("BoxMesh_df0lk")
+surface_material_override/0 = ExtResource("1_dojpo")
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 18.503769, 0)
+shape = SubResource("ConvexPolygonShape3D_i6x8u")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_5n3yh")

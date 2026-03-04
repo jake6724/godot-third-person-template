@@ -29,6 +29,9 @@ var _camera_input_direction: Vector2 = Vector2.ZERO
 var _last_movement_direction: Vector3 = Vector3.BACK
 var _rotate_camera: bool = false
 
+@export var grapple_raycast: RayCast3D
+@export var grapple_controller: GrappleController
+
 var zoom_target: float
 
 const MOVE_DIRECTION_THRESHOLD: float = 0.2
@@ -83,7 +86,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("scroll_down"):
 		zoom_target += zoom_step
 
-func _physics_process(delta: float) -> void:	
+func _physics_process(delta: float) -> void:
+	# print(velocity)	
 	if _rotate_camera:
 		# Set X and Y camera rotation. Clamp X axis so player cannot look fully up or down
 		_camera_pivot.rotation.x += _camera_input_direction.y * delta
@@ -128,6 +132,7 @@ func _physics_process(delta: float) -> void:
 	# Animate
 	if not is_on_floor() and velocity.y <= 0:
 		_skin.fall()
+		
 	elif is_on_floor():
 		coyote_jump_available = true
 		coyote_jump_timer.stop()
@@ -138,7 +143,8 @@ func _physics_process(delta: float) -> void:
 			_skin.idle()
 
 func jump() -> void:
-	if is_on_floor() or coyote_jump_available:
+	if is_on_floor() or grapple_controller.launched or coyote_jump_available:
+		grapple_controller.launched = false
 		coyote_jump_available = false
 		velocity.y = jump_power
 		_skin.jump()
