@@ -12,19 +12,22 @@ extends CharacterBody3D
 @export_range(.1, 10, .1) var zoom_step: float = 1
 @export_range(3, 10, 1) var zoom_min: float = 3
 @export_range(5, 20, 1) var zoom_max: float = 10
+@export var right_click_to_rotate_camera: bool = false
 @export_group("Movement")
 @export var move_speed: float = 8.0
 @export var move_speed_sprint: float = 10.0
 var move_speed_base: float 
 @export_range(20,100,1) var acceleration: float = 20.0
 @export var jump_power: float = 12.0
-@export var gravity: float = -30.0
+@export_range(0,1,.1) var jump_coyote_time: float = 0.5
+@export var gravity: float = -30
 
 @export var _camera: Camera3D
 @export var _camera_pivot: Node3D
 @export var _spring_arm: SpringArm3D
 var _camera_input_direction: Vector2 = Vector2.ZERO
 var _last_movement_direction: Vector3 = Vector3.BACK
+var _rotate_camera: bool = false
 
 var zoom_target: float
 
@@ -32,9 +35,18 @@ const MOVE_DIRECTION_THRESHOLD: float = 0.2
 
 @export var _skin: Node3D
 
+var coyote_jump_available: bool = true
+var coyote_jump_timer: Timer = Timer.new()
+var prev_is_on_floor: bool = true
+
 func _ready():
 	zoom_target = _spring_arm.spring_length 
 	move_speed_base = move_speed
+	coyote_jump_timer.one_shot = true
+	coyote_jump_timer.autostart = false
+	add_child(coyote_jump_timer)
+	coyote_jump_timer.timeout.connect(on_coyote_jump_timer_timeout)
+	_rotate_camera = not right_click_to_rotate_camera
 
 func _process(delta):
 	if not is_equal_approx(_spring_arm.spring_length, zoom_target):
@@ -52,6 +64,13 @@ func _input(_event):
 	if Input.is_action_just_released("sprint"):
 		move_speed = move_speed_base
 		_skin.animation_tree.set("parameters/TimeScale/scale", 1.0)
+	if Input.is_action_just_pressed("jump"):
+		jump()
+	if right_click_to_rotate_camera:
+		if Input.is_action_just_pressed("right_click"):
+			_rotate_camera = true
+		if Input.is_action_just_released("right_click"):
+			_rotate_camera = false
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Check mouse has moved
@@ -64,11 +83,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("scroll_down"):
 		zoom_target += zoom_step
 
-func _physics_process(delta: float) -> void:
-	# Set X and Y camera rotation. Clamp X axis so player cannot look fully up or down
-	_camera_pivot.rotation.x += _camera_input_direction.y * delta
-	_camera_pivot.rotation.y -= _camera_input_direction.x  * delta
-	_camera_pivot.rotation.x = clamp(_camera_pivot.rotation.x, (-PI / 6.0), (PI / 3.0))
+func _physics_process(delta: float) -> void:	
+	if _rotate_camera:
+		# Set X and Y camera rotation. Clamp X axis so player cannot look fully up or down
+		_camera_pivot.rotation.x += _camera_input_direction.y * delta
+		_camera_pivot.rotation.y -= _camera_input_direction.x  * delta
+		_camera_pivot.rotation.x = clamp(_camera_pivot.rotation.x, (-PI / 6.0), (PI / 3.0))
 
 	# Reset _camera_input_direction for the next time _unhandled_input() is triggered
 	# If this is not reset, the camera will keep rotating until new input comes in
@@ -89,11 +109,12 @@ func _physics_process(delta: float) -> void:
 	var y_velocity = velocity.y
 	velocity.y = 0.0
 	velocity = velocity.move_toward(move_direction * move_speed, acceleration * delta)
-	velocity.y = y_velocity + (gravity * delta)
+	velocity.y = (y_velocity + (gravity * delta))
 
-	var is_starting_jump: bool = Input.is_action_just_pressed("jump") and is_on_floor()
-	if is_starting_jump:
-		velocity.y += jump_power
+	if prev_is_on_floor != is_on_floor() and not is_on_floor():
+		coyote_jump_timer.start(jump_coyote_time)
+
+	prev_is_on_floor = is_on_floor()
 
 	move_and_slide()
 
@@ -105,14 +126,22 @@ func _physics_process(delta: float) -> void:
 	_skin.global_rotation.y = lerp_angle(_skin.global_rotation.y, target_angle, rotation_speed * delta)
 
 	# Animate
-
-	if is_starting_jump:
-		_skin.jump()
-	elif not is_on_floor() and velocity.y == 0:
+	if not is_on_floor() and velocity.y <= 0:
 		_skin.fall()
 	elif is_on_floor():
+		coyote_jump_available = true
+		coyote_jump_timer.stop()
 		var ground_speed: float = velocity.length()
 		if ground_speed > 1.0:
 			_skin.move()
 		else:
 			_skin.idle()
+
+func jump() -> void:
+	if is_on_floor() or coyote_jump_available:
+		coyote_jump_available = false
+		velocity.y = jump_power
+		_skin.jump()
+
+func on_coyote_jump_timer_timeout() -> void:
+	coyote_jump_available = false

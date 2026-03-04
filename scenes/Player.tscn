@@ -10,7 +10,9 @@ height = 1.53125
 [node name="Player" type="CharacterBody3D" node_paths=PackedStringArray("_camera", "_camera_pivot", "_spring_arm", "_skin")]
 script = ExtResource("1_v6fml")
 zoom_sensitivity = 6.0
-acceleration = 30.0
+zoom_max = 17.0
+acceleration = 70.0
+jump_coyote_time = 0.3
 _camera = NodePath("CameraPivot/SpringArm3D/Camera3D")
 _camera_pivot = NodePath("CameraPivot")
 _spring_arm = NodePath("CameraPivot/SpringArm3D")
