@@ -49,6 +49,7 @@ surface_material_override/0 = ExtResource("1_dojpo")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.001226902, -7.24143, -13.973257)
+visible = false
 shape = SubResource("ConvexPolygonShape3D_1fpmp")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
@@ -58,6 +59,7 @@ skeleton = NodePath("../..")
 
 [node name="CollisionShape3D2" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.13251227, 0.73582315, -42.905724)
+visible = false
 shape = SubResource("ConvexPolygonShape3D_df0lk")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
